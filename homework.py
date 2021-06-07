@@ -74,11 +74,10 @@ def get_homework_statuses(current_timestamp):
         logging.exception(f'{SERVER_ERROR}: {req_error}')
         return SERVER_ERROR
     try:
-        homework_statuses_json = homework_statuses.json()
+        return homework_statuses.json()
     except JSONDecodeError as json_error:
         logging.exception(f'{JSON_ERROR}: {json_error}')
         return JSON_ERROR
-    return homework_statuses_json
 
 
 def send_message(message, bot_client):
