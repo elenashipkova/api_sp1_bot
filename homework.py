@@ -95,12 +95,12 @@ def main():
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
-            last_homework = new_homework.get('homeworks')[0]
+            last_homework = new_homework.get('homeworks')
             if last_homework:
                 if new_homework == SERVER_ERROR or JSON_ERROR:
                     send_message(f'{FUNCTION_ERROR} {get_homework_statuses}', bot)
                     return f'{FUNCTION_ERROR}: {get_homework_statuses}'
-                status_message = parse_homework_status(last_homework)
+                status_message = parse_homework_status(last_homework[0])
                 send_message(status_message, bot)
                 logging.info(f'Message sending completed: {status_message}')
             current_timestamp = new_homework.get(
