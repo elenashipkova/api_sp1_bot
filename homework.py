@@ -98,7 +98,8 @@ def main():
             last_homework = new_homework.get('homeworks')
             if last_homework:
                 if new_homework == SERVER_ERROR or JSON_ERROR:
-                    send_message(f'{FUNCTION_ERROR} {get_homework_statuses}', bot)
+                    send_message(
+                        f'{FUNCTION_ERROR} {get_homework_statuses}', bot)
                     return f'{FUNCTION_ERROR}: {get_homework_statuses}'
                 status_message = parse_homework_status(last_homework[0])
                 send_message(status_message, bot)
