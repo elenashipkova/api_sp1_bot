@@ -99,7 +99,7 @@ def main():
             new_homework = get_homework_statuses(current_timestamp)
             if new_homework.get('error'):
                 send_message(
-                        f"{ERRORS['function']} {get_homework_statuses}", bot)
+                    f"{ERRORS['function']} {get_homework_statuses}", bot)
                 time.sleep(5)
                 continue
             last_homework = new_homework.get('homeworks')
