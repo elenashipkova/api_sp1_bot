@@ -43,24 +43,26 @@ STATUSES = {
         'Ревьюеру всё понравилось, можно приступать к следующему уроку.'
     )
 }
-SERVER_ERROR = 'Server connection error'
-JSON_ERROR = 'JSON decoding error'
-BOT_ERROR = 'Bot initializing error'
-DATA_IS_NONE = 'Homework_name or status are not available'
-UNKNOWN_STATUS_ERROR = 'Unknown homework status error'
-MESSAGE_ERROR = 'Bot sending message error'
-FUNCTION_ERROR = 'Function execution error'
+ERRORS = {
+    'server': 'Server connection error',
+    'json': 'JSON decoding error',
+    'bot': 'Bot initializing error',
+    'data_is_none': 'Homework_name or status are not available',
+    'unknown_status': 'Unknown homework status error',
+    'message': 'Bot sending message error',
+    'function': 'Function execution error'
+}
 
 
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
     status = homework.get('status')
     if homework_name is None or status is None:
-        logging.error(DATA_IS_NONE, exc_info=True)
-        return DATA_IS_NONE
+        logging.error(ERRORS['data_is_none'])
+        return ERRORS['data_is_none']
     if status not in STATUSES:
-        logging.error(UNKNOWN_STATUS_ERROR, exc_info=True)
-        return UNKNOWN_STATUS_ERROR
+        logging.error(ERRORS['unknown_status'])
+        return ERRORS['unknown_status']
     message, verdict = STATUSES[status]
     return f'{message} "{homework_name}"\n\n{verdict}'
 
@@ -71,20 +73,20 @@ def get_homework_statuses(current_timestamp):
     try:
         homework_statuses = requests.get(URL, headers=HEADERS, params=params)
     except requests.exceptions.RequestException as req_error:
-        logging.exception(f'{SERVER_ERROR}: {req_error}')
-        return SERVER_ERROR
+        logging.exception(f"{ERRORS['server']}: {req_error}")
+        return {'error': ERRORS['server'] + req_error}
     try:
         return homework_statuses.json()
     except JSONDecodeError as json_error:
-        logging.exception(f'{JSON_ERROR}: {json_error}')
-        return JSON_ERROR
+        logging.exception(f"{ERRORS['json']}: {json_error}")
+        return {'error': ERRORS['json'] + json_error}
 
 
 def send_message(message, bot_client):
     try:
         return bot_client.send_message(chat_id=CHAT_ID, text=message)
     except requests.exceptions.RequestException as e:
-        logging.exception(f'{MESSAGE_ERROR}: {e}')
+        logging.exception(f"{ERRORS['message']}: {e}")
 
 
 def main():
@@ -95,12 +97,13 @@ def main():
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
+            if new_homework.get('error'):
+                send_message(
+                        f"{ERRORS['function']} {get_homework_statuses}", bot)
+                time.sleep(5)
+                continue
             last_homework = new_homework.get('homeworks')
             if last_homework:
-                if new_homework == SERVER_ERROR or JSON_ERROR:
-                    send_message(
-                        f'{FUNCTION_ERROR} {get_homework_statuses}', bot)
-                    return f'{FUNCTION_ERROR}: {get_homework_statuses}'
                 status_message = parse_homework_status(last_homework[0])
                 send_message(status_message, bot)
                 logging.info(f'Message sending completed: {status_message}')
@@ -110,8 +113,8 @@ def main():
             time.sleep(300)
 
         except Exception as e:
-            logging.exception(f'{BOT_ERROR}: {e}')
-            send_message(f'{BOT_ERROR}: {e}', bot)
+            logging.exception(f"{ERRORS['bot']}: {e}")
+            send_message(f"{ERRORS['bot']}: {e}", bot)
             time.sleep(5)
 
 
