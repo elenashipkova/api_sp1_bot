@@ -115,7 +115,7 @@ def main():
         except Exception as e:
             logging.exception(f"{ERRORS['bot']}: {e}")
             send_message(f"{ERRORS['bot']}: {e}", bot)
-            time.sleep(5)
+            time.sleep(1200)
 
 
 if __name__ == '__main__':
